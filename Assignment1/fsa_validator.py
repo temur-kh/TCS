@@ -34,21 +34,18 @@ def __dfs(cur, path, visited):
     pass
 
 
-def __has_not_reachable_states(trans, init_state):
+def __has_not_reachable_states(states, trans, init_state):
     """
     Check if the FSA has not reachable states
     :param trans: a list of transitions of the form tuple(s1>a>s2) where s1 and s2 are states, and a is an alpha
     :param init_state: a list containing an initial state
     :return: True if the FSA has not reachable states else False
     """
-    path = dict()
-    visited = dict()
+    path = {state: set() for state in states}
+    visited = {state: False for state in states}
     for tup in trans:
-        try:
-            path[tup[0]].add(tup[2])
-        except KeyError:
-            path[tup[0]] = {tup[2]}
-        visited[tup[0]], visited[tup[2]] = False, False
+        path[tup[0]].add(tup[2])
+        path[tup[2]].add(tup[0])
     for state in init_state:
         if not visited[state]:
             visited[state] = True
@@ -76,22 +73,16 @@ def __has_disjoint_states(states, trans):
     return cnt_components > 1
 
 
-def __create_out_trans_map(trans):
+def __create_out_trans_map(states, alpha, trans):
     """
     Create a graph of transitions in the form of a dictionary
     :param trans: a list of transitions of the form tuple(s1>a>s2) where s1 and s2 are states, and a is an alpha
     :return: a dictionary of transitions
     """
-    out_trans = dict()
+    trans_map = {in_st: {tr: [] for tr in alpha} for in_st in states}
     for tup in trans:
-        try:
-            out_trans[tup[0]][tup[1]].append(tup[2])
-        except KeyError:
-            try:
-                out_trans[tup[0]][tup[1]] = [tup[2]]
-            except KeyError:
-                out_trans[tup[0]] = {tup[1]: [tup[2]]}
-    return out_trans
+        trans_map[tup[0]][tup[1]].append(tup[2])
+    return trans_map
 
 
 def __get_not_present_transitions(alpha, trans):
@@ -149,7 +140,7 @@ def __is_nondeterministic(out_trans):
     :param out_trans: a dictionary of transitions
     :return: True if the FSA is nondeterministic else False
     """
-    return len([None for key1 in out_trans for key2 in out_trans[key1].keys() if len(out_trans[key1][key2]) > 1])
+    return len([None for key1 in out_trans for key2 in out_trans[key1] if len(out_trans[key1][key2]) > 1])
 
 
 def __is_complete(alpha, out_trans):
@@ -159,7 +150,7 @@ def __is_complete(alpha, out_trans):
     :param out_trans: a dictionary of transitions
     :return: True if the FSA is complete else False
     """
-    return not len([None for key in out_trans.keys() if len(out_trans[key].keys()) < len(alpha)])
+    return not len([None for key1 in out_trans for key2 in out_trans[key1] if len(out_trans[key1][key2]) == 0])
 
 
 def __is_empty_set(collection):
@@ -242,7 +233,7 @@ def validate_fsa(states, alpha, init_state, fin_states, trans):
 
     res = ""
     # Completeness
-    out_trans = __create_out_trans_map(trans)
+    out_trans = __create_out_trans_map(states, alpha, trans)
     res += __FSA_COMPLETE if __is_complete(alpha, out_trans) else __FSA_INCOMPLETE
     has_warning = False
 
@@ -253,7 +244,7 @@ def validate_fsa(states, alpha, init_state, fin_states, trans):
             has_warning = True
         res += "\n" + __W1
     # Warning 2
-    if __has_not_reachable_states(trans, init_state):
+    if __has_not_reachable_states(states, trans, init_state):
         if not has_warning:
             res += "\n" + __WARNING
             has_warning = True
