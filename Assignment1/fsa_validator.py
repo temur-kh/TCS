@@ -45,7 +45,6 @@ def __has_not_reachable_states(states, trans, init_state):
     visited = {state: False for state in states}
     for tup in trans:
         path[tup[0]].add(tup[2])
-        path[tup[2]].add(tup[0])
     for state in init_state:
         if not visited[state]:
             visited[state] = True

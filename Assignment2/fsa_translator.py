@@ -104,10 +104,15 @@ def __get_states_out_set(states, init_state, fin_states, trans):
     :param trans: a list of transitions of the form tuple(s1>a>s2) where s1 and s2 are states, and a is an alpha
     :return: a set of undefined states
     """
-    return set([tup[0] for tup in trans if tup[0] not in states] +
-               [tup[2] for tup in trans if tup[2] not in states] +
-               [state for state in init_state if state not in states] +
-               [state for state in fin_states if state not in states])
+    out_states = [tup[0] for tup in trans if tup[0] not in states] \
+                 + [tup[2] for tup in trans if tup[2] not in states] \
+                 + [state for state in init_state if state not in states] \
+                 + [state for state in fin_states if state not in states]
+    unique_states = []
+    for state in out_states:
+        if state not in unique_states:
+            unique_states.append(state)
+    return unique_states
 
 
 def __has_states_out_set(states, init_state, fin_states, trans):

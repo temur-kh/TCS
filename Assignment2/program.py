@@ -13,15 +13,15 @@ def make_list(line):
     """
     line = line.strip().split("=")[1][1:-1].split(",")
     if line == [""]:
-        return {}
+        return []
     new_list = []
-    if len(line) > 0 and ">" in line[0]:
-        line = list(sorted(set(line)))
-        for item in line:
-            obj = item.split(">")
-            new_list.append(tuple(obj))
-    else:
-        new_list = list(sorted(set(line)))
+    for item in line:
+        if len(line) > 0 and ">" in item:
+            obj = tuple(item.split(">"))
+        else:
+            obj = item
+        if obj not in new_list:
+            new_list.append(obj)
     return new_list
 
 
